@@ -1,0 +1,222 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form with WhatsApp Integration</title>
+    <style>
+        /* Body Styling */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #89f7fe, #66a6ff);
+            margin: 0;
+        }
+
+        /* Container Styling */
+        .container {
+            width: 90%;
+            max-width: 400px;
+            perspective: 1000px;
+            margin: 20px;
+        }
+
+        /* Card Styling */
+        .card {
+            position: relative;
+            width: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.8s;
+        }
+
+        /* Form Styling */
+        .form {
+            background: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            backface-visibility: hidden;
+            position: absolute;
+            width: 100%;
+        }
+
+        h2 {
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        input[type="text"], select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s ease;
+            font-size: 1em;
+        }
+
+        /* Buttons Styling */
+        button {
+            background: #66a6ff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s ease;
+            font-weight: bold;
+            padding: 10px;
+            font-size: 1em;
+        }
+
+        /* Star Rating */
+        .star-rating input[type="radio"] {
+            display: none;
+        }
+
+        .star-rating label {
+            font-size: 25px;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .star-rating input:checked ~ label,
+        .star-rating label:hover,
+        .star-rating label:hover ~ label {
+            color: #ffca28;
+        }
+
+        /* Camera and Image Container */
+        #cameraContainer, #imageContainer {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #cameraContainer video, #imageContainer img {
+            width: 100%;
+            max-width: 200px;
+            border-radius: 10px;
+            border: 2px solid #ccc;
+        }
+
+        #captureButton, #downloadButton {
+            margin-top: 10px;
+            padding: 8px 12px;
+            background-color: #66a6ff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 0.9em;
+        }
+
+        /* Media Query for Smaller Screens */
+        @media (max-width: 768px) {
+            .container {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <form id="userForm" class="form">
+                <h2>Login/Signup Form</h2>
+
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" required>
+
+                <label for="class">Class</label>
+                <input type="text" id="class" name="class" required>
+
+                <label for="gender">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </select>
+
+                <label for="roll">Roll Number</label>
+                <input type="text" id="roll" name="roll" required>
+
+                <label for="college">College Name</label>
+                <input type="text" id="college" name="college" required>
+
+                <label for="mobile">Mobile Number</label>
+                <input type="text" id="mobile" name="mobile" required>
+
+                <label>Feedback</label>
+                <div class="star-rating">
+                    <input type="radio" name="rating" id="star5" value="5" required><label for="star5">&#9733;</label>
+                    <input type="radio" name="rating" id="star4" value="4"><label for="star4">&#9733;</label>
+                    <input type="radio" name="rating" id="star3" value="3"><label for="star3">&#9733;</label>
+                    <input type="radio" name="rating" id="star2" value="2"><label for="star2">&#9733;</label>
+                    <input type="radio" name="rating" id="star1" value="1"><label for="star1">&#9733;</label>
+                </div>
+
+                <div id="cameraContainer">
+                    <video id="video" autoplay></video>
+                    <button type="button" id="captureButton">Capture Photo</button>
+                </div>
+                <div id="imageContainer">
+                    <img id="capturedImage" src="">
+                </div>
+
+                <button type="button" onclick="sendToWhatsApp()">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Camera
+        const video = document.getElementById('video');
+        const canvas = document.createElement('canvas');
+        const capturedImage = document.getElementById('capturedImage');
+
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error("Camera access denied:", error);
+            });
+
+        document.getElementById('captureButton').onclick = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            capturedImage.src = canvas.toDataURL('image/png');
+        };
+
+        // Function to send data to WhatsApp
+        function sendToWhatsApp() {
+            const name = document.getElementById("name").value;
+            const userClass = document.getElementById("class").value;
+            const gender = document.getElementById("gender").value;
+            const roll = document.getElementById("roll").value;
+            const college = document.getElementById("college").value;
+            const mobile = document.getElementById("mobile").value;
+            const rating = document.querySelector('input[name="rating"]:checked').value;
+
+            const message = `Name: ${name}\nClass: ${userClass}\nGender: ${gender}\nRoll Number: ${roll}\nCollege: ${college}\nMobile: ${mobile}\nRating: ${rating} Stars`;
+
+            const whatsappURL = `https://wa.me/9425077259?text=${encodeURIComponent(message)}`;
+            window.open(whatsappURL, "_blank");
+        }
+    </script>
+</body>
+</html>
